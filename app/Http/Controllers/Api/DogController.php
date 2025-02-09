@@ -12,9 +12,12 @@ class DogController extends Controller
     /**
      * Display a listing of the resource.
      */
+
     public function index()
     {
-        return [ 'display all' ];
+        return [
+            'data' => Dog::all()
+        ];
     }
 
     /**
