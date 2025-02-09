@@ -50,4 +50,8 @@ class User extends Authenticatable
             'password' => 'hashed',
         ];
     }
+
+    public function dogs() {
+        return $this->hasMany(Dog::class);
+    }
 }
