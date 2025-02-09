@@ -9,4 +9,11 @@ class Dog extends Model
 {
     /** @use HasFactory<\Database\Factories\DogFactory> */
     use HasFactory;
+
+    protected $table = 'dogs_info';
+
+
+    public function user() {
+        return $this->belongsTo(User::class);
+    }
 }
