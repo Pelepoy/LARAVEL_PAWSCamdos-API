@@ -12,7 +12,7 @@ class Pet extends Model
     use HasFactory, SoftDeletes;
 
     protected $fillable = [
-        'pet',
+        'species',
         'name',
         'breed',
         'color',
