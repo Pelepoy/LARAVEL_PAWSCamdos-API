@@ -38,13 +38,13 @@ class Pet extends Model
 
     protected static function boot()
     {
-    parent::boot();
+        parent::boot();
 
-    // Delete the associated image file when the pet is force deleted
-    static::forceDeleting(function ($pet) {
-        if ($pet->file_name) {
-            // Log::info("Deleting file: {$pet->file_name}");
-            Storage::disk()->delete($pet->file_name);
+        // Delete the associated image file when the pet is force deleted
+        static::forceDeleting(function ($pet) {
+            if ($pet->file_name) {
+                // Log::info("Deleting file: {$pet->file_name}");
+                Storage::disk()->delete($pet->file_name);
             }
         });
     }
