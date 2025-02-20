@@ -2,7 +2,8 @@
 
 namespace Database\Seeders;
 
-use Illuminate\Database\Console\Seeds\WithoutModelEvents;
+use App\Models\Pet;
+use App\Models\User;
 use Illuminate\Database\Seeder;
 
 class PetSeeder extends Seeder
@@ -12,6 +13,12 @@ class PetSeeder extends Seeder
      */
     public function run(): void
     {
-        //
+        // Ensure we have users before seeding pets
+        if (User::count() == 0) {
+            User::factory(10)->create(); // Create 10 users first
+        }
+
+        // Create pets and associate them with users
+        Pet::factory(20000)->create();
     }
 }
