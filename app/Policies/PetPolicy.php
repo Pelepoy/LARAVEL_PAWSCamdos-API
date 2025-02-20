@@ -63,4 +63,11 @@ class PetPolicy
     {
         return false;
     }
+
+    public function scopeOwner(User $user, Pet $pet): Response
+    {
+        return $pet->owner_id === $user->id
+            ? Response::allow()
+            : Response::deny('Only the owner can perform this action.');
+    }
 }
