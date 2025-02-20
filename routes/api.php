@@ -1,7 +1,6 @@
 <?php
 
 use App\Http\Controllers\Api\AuthController;
-use App\Http\Controllers\Api\DogController;
 use App\Http\Controllers\Api\PetController;
 use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Http\Request;
