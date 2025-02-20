@@ -2,6 +2,7 @@
 
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\DogController;
+use App\Http\Controllers\Api\PetController;
 use App\Http\Controllers\EmailVerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
@@ -21,10 +22,11 @@ Route::middleware('auth:sanctum')->group(function () {
 	Route::post('/email-verification', [EmailVerificationController::class, 'email_verification']);
 	Route::get('/resend-otp', [EmailVerificationController::class, 'resend_otp']);
 	Route::post('/v1/logout', [AuthController::class, 'logout']);
+	Route::delete('v1/pets/{pet}/force-delete', [PetController::class, 'forceDelete']);
 });
 
 /**
  * @Resource Routes
  */
 
-Route::apiResource('/v1/dogs', DogController::class);
+Route::apiResource('/v1/pets', PetController::class);
