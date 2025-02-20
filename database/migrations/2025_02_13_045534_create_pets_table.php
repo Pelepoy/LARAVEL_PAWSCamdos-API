@@ -13,7 +13,7 @@ return new class extends Migration
     {
         Schema::create('pets', function (Blueprint $table) {
             $table->id();
-            $table->foreignId('owner_id')->constrained('users', 'id')->cascadeOnDelete();
+            $table->foreignId('owner_id')->constrained('users')->cascadeOnDelete();
             // Basic Information
             $table->string('species');
             $table->string('name');
@@ -22,7 +22,7 @@ return new class extends Migration
             $table->integer('age');
             $table->decimal('weight', 5, 2);
             $table->text('description')->nullable();
-            
+
             // Additional Common Columns
             $table->enum('gender', ['male', 'female']);
             $table->date('date_of_birth')->nullable();
@@ -31,11 +31,11 @@ return new class extends Migration
             $table->boolean('is_vaccinated')->default(false);
             $table->boolean('is_neutered')->default(false);
             $table->string('profile_image_url')->nullable(); // URL to the dog's profile image
-            
+
             // Timestamps
             $table->timestamps();
             $table->softDeletes();
-            
+
             // Indexes
             $table->index('name');
             $table->index('breed');
