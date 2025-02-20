@@ -3,6 +3,7 @@
 namespace App\Http\Requests;
 
 use Illuminate\Foundation\Http\FormRequest;
+use Illuminate\Validation\Rule;
 
 class UpdatePetRequest extends FormRequest
 {
@@ -11,7 +12,7 @@ class UpdatePetRequest extends FormRequest
      */
     public function authorize(): bool
     {
-        return false;
+        return true;
     }
 
     /**
@@ -22,7 +23,20 @@ class UpdatePetRequest extends FormRequest
     public function rules(): array
     {
         return [
-            //
+            'species' => 'sometimes|string|max:255',
+            'name' => 'sometimes|string|max:255',
+            'breed' => 'sometimes|string|max:255',
+            'color' => 'sometimes|string|max:255',
+            'age' => 'sometimes|integer',
+            'weight' => 'sometimes|numeric',
+            'description' => 'sometimes|string|nullable',
+            'gender' => 'sometimes|in:male,female,other',
+            'date_of_birth' => 'sometimes|date|nullable',
+            'microchip_id' => 'sometimes|string|nullable',
+            'insurance_policy_number' => 'sometimes|string|nullable',
+            'is_vaccinated' => 'sometimes|boolean',
+            'is_neutered' => 'sometimes|boolean',
+            'profile_image_url' => 'sometimes|image|mimes:jpg,jpeg,png|max:2048'
         ];
     }
 }
