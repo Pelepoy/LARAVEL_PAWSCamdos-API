@@ -11,9 +11,8 @@ return new class extends Migration
      */
     public function up(): void
     {
-        Schema::create('dogs', function (Blueprint $table) {
-            $table->id();
-            $table->timestamps();
+        Schema::table('pets', function (Blueprint $table) {
+            $table->string('file_name')->nullable()->after('profile_image_url');
         });
     }
 
@@ -22,6 +21,8 @@ return new class extends Migration
      */
     public function down(): void
     {
-        Schema::dropIfExists('dogs');
+        Schema::table('pets', function (Blueprint $table) {
+            $table->dropColumn('file_name');
+        });
     }
 };

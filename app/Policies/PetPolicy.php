@@ -2,11 +2,11 @@
 
 namespace App\Policies;
 
-use App\Models\Dog;
+use App\Models\Pet;
 use App\Models\User;
 use Illuminate\Auth\Access\Response;
 
-class DogPolicy
+class PetPolicy
 {
     /**
      * Determine whether the user can view any models.
@@ -19,7 +19,7 @@ class DogPolicy
     /**
      * Determine whether the user can view the model.
      */
-    public function view(User $user, Dog $dog): bool
+    public function view(User $user, Pet $pet): bool
     {
         return false;
     }
@@ -35,7 +35,7 @@ class DogPolicy
     /**
      * Determine whether the user can update the model.
      */
-    public function update(User $user, Dog $dog): bool
+    public function update(User $user, Pet $pet): bool
     {
         return false;
     }
@@ -43,7 +43,7 @@ class DogPolicy
     /**
      * Determine whether the user can delete the model.
      */
-    public function delete(User $user, Dog $dog): bool
+    public function delete(User $user, Pet $pet): bool
     {
         return false;
     }
@@ -51,7 +51,7 @@ class DogPolicy
     /**
      * Determine whether the user can restore the model.
      */
-    public function restore(User $user, Dog $dog): bool
+    public function restore(User $user, Pet $pet): bool
     {
         return false;
     }
@@ -59,8 +59,15 @@ class DogPolicy
     /**
      * Determine whether the user can permanently delete the model.
      */
-    public function forceDelete(User $user, Dog $dog): bool
+    public function forceDelete(User $user, Pet $pet): bool
     {
         return false;
+    }
+
+    public function scopeOwner(User $user, Pet $pet): Response
+    {
+        return $pet->owner_id === $user->id
+            ? Response::allow()
+            : Response::deny('Only the owner can perform this action.');
     }
 }
