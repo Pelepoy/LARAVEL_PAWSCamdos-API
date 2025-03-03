@@ -2,11 +2,12 @@
 
 namespace App\Models;
 
+use Illuminate\Contracts\Database\Query\Builder;
 use Illuminate\Database\Eloquent\Factories\HasFactory;
 use Illuminate\Database\Eloquent\Model;
 use Illuminate\Database\Eloquent\SoftDeletes;
-use Illuminate\Support\Facades\Log;
 use Illuminate\Support\Facades\Storage;
+
 
 class Pet extends Model
 {
@@ -28,6 +29,7 @@ class Pet extends Model
         'is_vaccinated',
         'is_neutered',
         'file_name',
+        'file_path',
         'profile_image_url',
     ];
 
@@ -36,15 +38,32 @@ class Pet extends Model
         return $this->belongsTo(User::class, 'owner_id');
     }
 
+    public function scopeFilter(Builder $query, $search)
+    {
+        return $query->where(function ($query) use ($search) {
+            $query->where('species', 'LIKE', "%{$search}%")
+                ->orWhere('name', 'LIKE', "%{$search}%")
+                ->orWhere('breed', 'LIKE', "%{$search}%")
+                ->orWhere('color', 'LIKE', "%{$search}%")
+                ->orWhere('age', 'LIKE', "%{$search}%")
+                ->orWhere('weight', 'LIKE', "%{$search}%")
+                ->orWhere('description', 'LIKE', "%{$search}%")
+                ->orWhere('gender', 'LIKE', "%{$search}%")
+                ->orWhere('date_of_birth', 'LIKE', "%{$search}%")
+                ->orWhere('microchip_id', 'LIKE', "%{$search}%")
+                ->orWhere('insurance_policy_number', 'LIKE', "%{$search}%");
+        });
+    }
+
     protected static function boot()
     {
         parent::boot();
 
         // Delete the associated image file when the pet is force deleted
         static::forceDeleting(function ($pet) {
-            if ($pet->file_name) {
-                // Log::info("Deleting file: {$pet->file_name}");
-                Storage::disk()->delete($pet->file_name);
+            if ($pet->file_path) {
+                \Log::info("Deleting file: {$pet->file_path}");
+                Storage::disk()->delete($pet->file_path);
             }
         });
     }
