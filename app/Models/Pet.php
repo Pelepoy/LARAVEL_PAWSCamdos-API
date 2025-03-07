@@ -31,6 +31,8 @@ class Pet extends Model
         'file_name',
         'file_path',
         'profile_image_url',
+        'qr_code_url',
+        'qr_code_path',
     ];
 
     public function user()
@@ -65,6 +67,12 @@ class Pet extends Model
                 \Log::info("Deleting file: {$pet->file_path}");
                 Storage::disk()->delete($pet->file_path);
             }
+
+            // // Delete QR code if exists
+            // if ($pet->qr_code_path) {
+            //     \Log::info("Deleting QR code: {$pet->qr_code_path}");
+            //     Storage::disk()->delete($pet->qr_code_path);
+            // }
         });
     }
 }
