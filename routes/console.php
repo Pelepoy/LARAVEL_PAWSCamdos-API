@@ -11,3 +11,4 @@ Artisan::command('inspire', function () {
 Schedule::command('telescope:prune --hours=24')->daily();
 Schedule::command('sanctum:prune-expired --hours=24')->daily();
 Schedule::command('otp:clean')->daily();
+Schedule::command('auth:clear-resets')->everyFifteenMinutes();
