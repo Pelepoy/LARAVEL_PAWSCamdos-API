@@ -7,18 +7,23 @@ use App\Models\Pet;
 use App\Http\Requests\StorePetRequest;
 use App\Http\Requests\UpdatePetRequest;
 use App\Services\FileUploadService;
+use App\Services\QRCodeService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Storage;
+use SimpleSoftwareIO\QrCode\Facades\QrCode;
 
 
 class PetController extends Controller implements HasMiddleware
 {
     public function __construct(
-        protected FileUploadService $fileUploadService
+        protected FileUploadService $fileUploadService,
+        protected QRCodeService $qrcodeService
     ) {
         $this->fileUploadService = $fileUploadService;
+        $this->qrcodeService = $qrcodeService;
     }
 
     public static function middleware()
@@ -28,7 +33,8 @@ class PetController extends Controller implements HasMiddleware
                 'index',
                 'show',
                 'getAllPetInfo',
-                'petInfoCursorPaginate'
+                'petInfoCursorPaginate',
+                'qrCode'
             ])
         ];
     }
@@ -97,11 +103,21 @@ class PetController extends Controller implements HasMiddleware
     {
         try {
             $data = $request->validated();
-
+            // Upload profile image and get the path
             $uploadData = $this->fileUploadService->upload($request->file('profile_image_url'));
             $data = array_merge($data, $uploadData);
 
+            // Save info including image metadata
             $pet = $request->user()->pets()->create($data);
+
+            /// Generate QR Code and store it
+            $qrCode = $this->qrcodeService->generateAndStore($pet->id);
+
+            // Update pet with QR code path and URL
+            $pet->updateOrFail([
+                'qr_code_url' => $qrCode['url'],
+                'qr_code_path' => $qrCode['file_path']
+            ]);
 
             return response()->json([
                 'status' => 'success',
@@ -118,6 +134,16 @@ class PetController extends Controller implements HasMiddleware
         }
     }
 
+    public function qrCode(Request $request)
+    {
+        $qrCode = QrCode::format('png')
+            ->size(300)
+            ->color(255, 0, 255)
+            ->merge(public_path('logo/test.png'), .2, true) // Ensure the path is correct
+            ->generate('testtt po');
+
+        return response($qrCode)->header('Content-Type', 'image/png');
+    }
     /**
      * Display the specified resource.
      */
