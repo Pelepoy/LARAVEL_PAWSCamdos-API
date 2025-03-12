@@ -64,15 +64,15 @@ class Pet extends Model
         // Delete the associated image file when the pet is force deleted
         static::forceDeleting(function ($pet) {
             if ($pet->file_path) {
-                \Log::info("Deleting file: {$pet->file_path}");
+                // \Log::info("Deleting file: {$pet->file_path}");
                 Storage::disk()->delete($pet->file_path);
             }
 
-            // // Delete QR code if exists
-            // if ($pet->qr_code_path) {
-            //     \Log::info("Deleting QR code: {$pet->qr_code_path}");
-            //     Storage::disk()->delete($pet->qr_code_path);
-            // }
+            // Delete QR code if exists
+            if ($pet->qr_code_path) {
+                // \Log::info("Deleting QR code: {$pet->qr_code_path}");
+                Storage::disk()->delete($pet->qr_code_path);
+            }
         });
     }
 }
