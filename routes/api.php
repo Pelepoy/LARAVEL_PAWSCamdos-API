@@ -13,6 +13,8 @@ use Illuminate\Support\Facades\Route;
 
 Route::post('/v1/register', [AuthController::class, 'register']);
 Route::post('/v1/login', [AuthController::class, 'login']);
+Route::post('/v1/forgot-password', [AuthController::class, 'forgotPassword'])->name('password.reset');
+Route::post('/v1/reset-password', [AuthController::class, 'resetPassword']);
 
 Route::middleware('auth:sanctum')->group(function () {
 	Route::get('/v1/auth', function (Request $request) {
@@ -27,6 +29,7 @@ Route::middleware('auth:sanctum')->group(function () {
 /**
  * @Resource Routes
  */
+Route::post('/v1/pets/qrcode', [PetController::class, 'qrCode']);
 Route::get('/v1/pets/cursor-paginate', [PetController::class, 'petInfoCursorPaginate']);
 Route::get('/v1/pets/all', [PetController::class, 'getAllPetInfo']);
 Route::apiResource('/v1/pets', PetController::class);
