@@ -123,7 +123,7 @@ class PetController extends Controller implements HasMiddleware
                 'status' => 'success',
                 'message' => 'Pet information was saved successfully',
                 'data' => $pet
-            ], status: 201);
+            ], 201);
         } catch (\Exception $e) {
             // Log::error('Error saving dog information' . $e->getMessage());
             return response()->json([
