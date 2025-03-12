@@ -139,7 +139,7 @@ class PetController extends Controller implements HasMiddleware
         $qrCode = QrCode::format('png')
             ->size(300)
             ->color(255, 0, 255)
-            ->merge(public_path('logo/test.png'), .2, true) // Ensure the path is correct
+            // ->merge(public_path('logo/test.png'), .2, true) // Ensure the path is correct
             ->generate('testtt po');
 
         return response($qrCode)->header('Content-Type', 'image/png');
