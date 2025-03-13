@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 /**
  * @Resource Routes
  */
-Route::post('/pets/qrcode', [PetController::class, 'qrCode']);
-Route::get('/pets/cursor-paginate', [PetController::class, 'petInfoCursorPaginate']);
-Route::get('/pets/all', [PetController::class, 'getAllPetInfo']);
+Route::post('/v1/pets/qrcode', [PetController::class, 'qrCode']);
+Route::get('/v1/pets/cursor-paginate', [PetController::class, 'petInfoCursorPaginate']);
+Route::get('/v1/pets/all', [PetController::class, 'getAllPetInfo']);
 Route::apiResource('/v1/pets', PetController::class); // Implement sanctum thru controller
