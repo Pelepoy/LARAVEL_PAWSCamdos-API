@@ -22,8 +22,6 @@ class PetController extends Controller implements HasMiddleware
         protected FileUploadService $fileUploadService,
         protected QRCodeService $qrcodeService
     ) {
-        $this->fileUploadService = $fileUploadService;
-        $this->qrcodeService = $qrcodeService;
     }
 
     public static function middleware()
