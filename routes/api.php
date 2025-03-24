@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PetController;
-use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
