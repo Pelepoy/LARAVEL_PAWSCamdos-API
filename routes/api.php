@@ -3,7 +3,7 @@
 use App\Http\Controllers\Api\AdminController;
 use App\Http\Controllers\Api\AuthController;
 use App\Http\Controllers\Api\PetController;
-use App\Http\Controllers\EmailVerificationController;
+use App\Http\Controllers\Api\EmailVerificationController;
 use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Route;
 
@@ -48,7 +48,7 @@ Route::middleware('auth:sanctum')->group(function () {
 /**
  * @Resource Routes
  */
-Route::post('/pets/qrcode', [PetController::class, 'qrCode']);
-Route::get('/pets/cursor-paginate', [PetController::class, 'petInfoCursorPaginate']);
-Route::get('/pets/all', [PetController::class, 'getAllPetInfo']);
+Route::post('/v1/pets/qrcode', [PetController::class, 'qrCode']);
+Route::get('/v1/pets/cursor-paginate', [PetController::class, 'petInfoCursorPaginate']);
+Route::get('/v1/pets/all', [PetController::class, 'getAllPetInfo']);
 Route::apiResource('/v1/pets', PetController::class); // Implement sanctum thru controller
