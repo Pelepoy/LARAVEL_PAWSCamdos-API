@@ -158,8 +158,8 @@ class PetController extends Controller implements HasMiddleware
      */
     public function update(UpdatePetRequest $request, Pet $pet)
     {
+        Gate::authorize('scopeOwner', $pet);
         try {
-            // Gate::authorize('scopeOwner', $pet);
             $data = $request->validated();
 
             $uploadData = $this->fileUploadService->upload($request->file('profile_image_url'), 'pet_image', $pet->file_path);
