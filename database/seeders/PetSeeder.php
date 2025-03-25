@@ -19,6 +19,6 @@ class PetSeeder extends Seeder
         }
 
         // Create pets and associate them with users
-        Pet::factory(20000)->create();
+        Pet::factory(200)->create();
     }
 }
