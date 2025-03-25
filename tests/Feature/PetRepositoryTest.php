@@ -16,9 +16,33 @@ use Tests\TestCase;
 
 class PetRepositoryTest extends TestCase
 {
-    /**
-     * A basic feature test example.
-     */
+    use RefreshDatabase;
+
+    protected function setUp(): void
+    {
+        parent::setUp();
+
+        if (
+            config('database.default') === 'sqlite' &&
+            !in_array(RefreshDatabase::class, class_uses($this))
+        ) {
+            throw new \Exception('Define RefreshDatabase Trait');
+        }
+    }
+
+
+    // add test env for safe access
+    public function test_environment_check()
+    {
+        dd(
+            [
+                "ACTIVE ENV" => app()->environment(), // Should show "testing"
+                "DB_CONNECTION" => config('database.default'), // Should show "sqlite"
+                "DB_DATABASE" => config('database.connections.sqlite.database') // Should show ":memory:"]
+            ]
+        );
+    }
+
     public function test_example(): void
     {
         $response = $this->get('/api/v1/pets/all');
@@ -26,7 +50,6 @@ class PetRepositoryTest extends TestCase
         $response->assertStatus(200);
     }
     // @INDEX
-
     public function test_the_application_returns_a_successful_response(): void
     {
         $response = $this->get('/api/v1/pets/cursor-paginate');
@@ -126,7 +149,7 @@ class PetRepositoryTest extends TestCase
         $this->actingAs($user);
 
         $response = $this->postJson('/api/v1/pets', [
-            'name' => 'Bochok',
+            'name' => 'Bochoky',
             'species' => 'Dog',
             'breed' => 'Shiba Inu',
             'color' => 'Brown',
@@ -143,7 +166,7 @@ class PetRepositoryTest extends TestCase
                 'status' => 'success',
                 'message' => 'Pet information was saved successfully',
                 'data' => [
-                    'name' => 'Bochok',
+                    'name' => 'Bochoky',
                     'species' => 'Dog',
                     'breed' => 'Shiba Inu',
                     'color' => 'Brown',
@@ -221,5 +244,209 @@ class PetRepositoryTest extends TestCase
             ]);
     }
 
+    // @UPDATE
+    public function test_pet_can_be_updated_successfully()
+    {
+        Storage::fake('public');
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create(['owner_id' => $user->id]);
+        $this->actingAs($user);
 
+        $response = $this->putJson("/api/v1/pets/{$pet->id}", [
+            'name' => 'Updated Name',
+            'species' => 'Cat', // Changed from Dog
+            'breed' => 'Persian',
+            'color' => 'White',
+            'age' => 4,
+            'weight' => 8.2,
+            'gender' => 'female',
+            'is_vaccinated' => false,
+            'is_neutered' => true,
+            'profile_image_url' => UploadedFile::fake()->image('new_pet.jpg'),
+        ]);
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'message' => 'Pet information updated successfully',
+                'data' => [
+                    'name' => 'Updated Name',
+                    'species' => 'Cat',
+                    'breed' => 'Persian',
+                    'color' => 'White',
+                    'age' => 4,
+                    'weight' => 8.2,
+                    'gender' => 'female',
+                    'is_vaccinated' => false,
+                    'is_neutered' => true,
+                ]
+            ]);
+
+        // Assert file was uploaded
+        $storedPath = $response->json('data.profile_image_url');
+        $storedPath = ltrim(str_replace('storage/', '', $storedPath), '/');
+        Storage::disk('public')->assertExists($storedPath);
+
+        // Assert old file was deleted (if your service does this)
+        Storage::disk('public')->assertMissing('old/path/to/image.jpg');
+    }
+
+    public function test_pet_update_validates_required_fields()
+    {
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create(['owner_id' => $user->id]);
+        $this->actingAs($user);
+
+        $response = $this->putJson("/api/v1/pets/{$pet->id}", [
+            'name' => '', // Invalid empty name
+        ]);
+
+        $response->assertStatus(422)
+            ->assertJsonValidationErrors(['name']);
+    }
+
+    public function test_pet_update_fails_for_unauthorized_users()
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $pet = Pet::factory()->create(['owner_id' => $owner->id]);
+
+        $this->actingAs($otherUser);
+
+        $response = $this->putJson("/api/v1/pets/{$pet->id}", [
+            'name' => 'Should Not Work',
+        ]);
+
+        $response->assertStatus(403); // Forbidden
+    }
+
+    public function test_pet_update_handles_file_upload_failure()
+    {
+        Storage::fake('public');
+        Storage::shouldReceive('putFileAs')->andReturn(false); // Force upload failure
+
+        $user = User::factory()->create();
+        $pet = Pet::factory()->create(['owner_id' => $user->id]);
+        $this->actingAs($user);
+
+        $response = $this->putJson("/api/v1/pets/{$pet->id}", [
+            'name' => 'Bochok',
+            'species' => 'Dog',
+            'breed' => 'Shiba Inu',
+            'color' => 'Brown',
+            'age' => 3,
+            'weight' => 10.5,
+            'gender' => 'male',
+            'is_vaccinated' => true,
+            'is_neutered' => false,
+            'profile_image_url' => UploadedFile::fake()->image('pet.jpg'),
+        ]);
+
+        $response->assertStatus(500)
+            ->assertJson([
+                'status' => 'error',
+                'message' => 'An error occurred while updating pet information',
+            ]);
+    }
+
+
+    // @DELETE
+    public function test_owner_can_soft_delete_pet()
+    {
+        $owner = User::factory()->create();
+        $pet = Pet::factory()->create(['owner_id' => $owner->id]);
+
+        $response = $this->actingAs($owner)
+            ->deleteJson("/api/v1/pets/{$pet->id}");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'message' => 'Pet deleted successfully',
+            ]);
+
+        // Assert soft delete
+        $this->assertSoftDeleted($pet);
+        $this->assertDatabaseHas('pets', ['id' => $pet->id]);
+    }
+
+    public function test_owner_can_force_delete_pet()
+    {
+        $owner = User::factory()->create();
+        $pet = Pet::factory()->create(['owner_id' => $owner->id]);
+
+        $response = $this->actingAs($owner)
+            ->deleteJson("/api/v1/pets/{$pet->id}/force-delete");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'message' => 'Pet force deleted successfully',
+            ]);
+
+        // Assert complete removal
+        $this->assertDatabaseMissing('pets', ['id' => $pet->id]);
+    }
+
+    public function test_non_owner_cannot_delete_pet()
+    {
+        $owner = User::factory()->create();
+        $otherUser = User::factory()->create();
+        $pet = Pet::factory()->create(['owner_id' => $owner->id]);
+
+        $response = $this->actingAs($otherUser)
+            ->deleteJson("/api/v1/pets/{$pet->id}");
+
+        $response->assertStatus(403);
+        $this->assertNotSoftDeleted($pet);
+    }
+
+    public function test_guest_cannot_delete_pet()
+    {
+        $pet = Pet::factory()->create();
+
+        $response = $this->deleteJson("/api/v1/pets/{$pet->id}");
+
+        $response->assertStatus(401);
+    }
+
+    public function test_deleting_nonexistent_pet_returns_404()
+    {
+        $owner = User::factory()->create();
+
+        $response = $this->actingAs($owner)
+            ->deleteJson("/api/v1/pets/99999");
+
+        $response->assertStatus(404);
+    }
+
+    public function test_force_delete_removes_all_related_files()
+    {
+        Storage::fake('public');
+
+        $owner = User::factory()->create();
+        $pet = Pet::factory()->create([
+            'owner_id' => $owner->id,
+            'file_path' => "pets/image.jpg",
+            'qr_code_path' => "pets/qrcode.png"
+        ]);
+
+        Storage::disk()->put($pet->file_path, 'dummy content');
+        Storage::disk()->put($pet->qr_code_path, 'dummy content');
+
+        $this->assertTrue(Storage::disk()->exists($pet->file_path));
+        $this->assertTrue(Storage::disk()->exists($pet->qr_code_path));
+
+        $response = $this->actingAs($owner)->deleteJson("/api/v1/pets/{$pet->id}/force-delete");
+
+        $response->assertStatus(200)
+            ->assertJson([
+                'status' => 'success',
+                'message' => 'Pet force deleted successfully',
+            ]);
+
+        $this->assertDatabaseMissing('pets', ['id' => $pet->id]);
+        Storage::disk()->assertMissing($pet->file_path);
+        Storage::disk()->assertMissing($pet->qr_code_path);
+    }
 }
