@@ -7,6 +7,7 @@ use App\Models\Pet;
 use App\Http\Requests\StorePetRequest;
 use App\Http\Requests\UpdatePetRequest;
 use App\Services\FileUploadService;
+use App\Services\PetService;
 use App\Services\QRCodeService;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
@@ -19,6 +20,7 @@ use SimpleSoftwareIO\QrCode\Facades\QrCode;
 class PetController extends Controller implements HasMiddleware
 {
     public function __construct(
+        protected PetService $petService,
         protected FileUploadService $fileUploadService,
         protected QRCodeService $qrcodeService
     ) {
@@ -99,23 +101,49 @@ class PetController extends Controller implements HasMiddleware
      */
     public function store(StorePetRequest $request)
     {
+        // try {
+        //     $data = $request->validated();
+        //     // Upload profile image and get the path
+        //     $uploadData = $this->fileUploadService->upload($request->file('profile_image_url'));
+        //     $data = array_merge($data, $uploadData);
+
+        //     // Save info including image metadata
+        //     $pet = $request->user()->pets()->create($data);
+
+        //     /// Generate QR Code and store it
+        //     $qrCode = $this->qrcodeService->generateAndStore($pet->id);
+
+        //     // Update pet with QR code path and URL
+        //     $pet->updateOrFail([
+        //         'qr_code_url' => $qrCode['url'],
+        //         'qr_code_path' => $qrCode['file_path']
+        //     ]);
+
+        //     return response()->json([
+        //         'status' => 'success',
+        //         'message' => 'Pet information was saved successfully',
+        //         'data' => $pet
+        //     ], 201);
+        // } catch (\Exception $e) {
+        //     // Log::error('Error saving dog information' . $e->getMessage());
+        //     return response()->json([
+        //         'status' => 'error',
+        //         'message' => 'An error occurred while saving pet information',
+        //         'errors' => $e->getMessage()
+        //     ], 500);
+        // }
+
+
+        // dd([
+        //     $request->validated(),
+        // ]);
+
         try {
-            $data = $request->validated();
-            // Upload profile image and get the path
-            $uploadData = $this->fileUploadService->upload($request->file('profile_image_url'));
-            $data = array_merge($data, $uploadData);
-
-            // Save info including image metadata
-            $pet = $request->user()->pets()->create($data);
-
-            /// Generate QR Code and store it
-            $qrCode = $this->qrcodeService->generateAndStore($pet->id);
-
-            // Update pet with QR code path and URL
-            $pet->updateOrFail([
-                'qr_code_url' => $qrCode['url'],
-                'qr_code_path' => $qrCode['file_path']
-            ]);
+            $pet = $this->petService->createPet(
+                $request->validated(),
+                $request->file('profile_image_url'),
+                $request->user()
+            );
 
             return response()->json([
                 'status' => 'success',
@@ -123,13 +151,13 @@ class PetController extends Controller implements HasMiddleware
                 'data' => $pet
             ], 201);
         } catch (\Exception $e) {
-            // Log::error('Error saving dog information' . $e->getMessage());
             return response()->json([
                 'status' => 'error',
                 'message' => 'An error occurred while saving pet information',
                 'errors' => $e->getMessage()
             ], 500);
         }
+
     }
 
     public function qrCode(Request $request)
