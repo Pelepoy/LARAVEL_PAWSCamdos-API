@@ -14,10 +14,12 @@ class AdminController extends Controller
     {
         $counts = User::getDashboardCounts();
 
-        return response()->json([
-            'total_users' => $counts->total_users,
-            'total_pets' => $counts->total_pets,
-        ]);
+        return response()->json(
+            [
+                'total_users' => $counts->total_users,
+                'total_pets' => $counts->total_pets,
+            ]
+        );
     }
 
     // Get all users
@@ -27,17 +29,18 @@ class AdminController extends Controller
             ->filter($request->query('search'))
             ->paginate($request->query('limit', 10));
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $users->items(),
-            'meta' => [
-                'current_page' => $users->currentPage(),
-                'last_page' => $users->lastPage(),
-                'per_page' => $users->perPage(),
-                'total' => $users->total(),
+        return response()->json(
+            [
+                'status' => 'success',
+                'data' => $users->items(),
+                'meta' => [
+                    'current_page' => $users->currentPage(),
+                    'last_page' => $users->lastPage(),
+                    'per_page' => $users->perPage(),
+                    'total' => $users->total(),
+                ]
             ]
-        ]);
-
+        );
     }
 
     // Get all pets
@@ -48,16 +51,18 @@ class AdminController extends Controller
             ->paginate($request->query('limit', 10));
 
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $pets->items(),
-            'meta' => [
-                'current_page' => $pets->currentPage(),
-                'last_page' => $pets->lastPage(),
-                'per_page' => $pets->perPage(),
-                'total' => $pets->total(),
+        return response()->json(
+            [
+                'status' => 'success',
+                'data' => $pets->items(),
+                'meta' => [
+                    'current_page' => $pets->currentPage(),
+                    'last_page' => $pets->lastPage(),
+                    'per_page' => $pets->perPage(),
+                    'total' => $pets->total(),
+                ]
             ]
-        ]);
+        );
     }
 
     // Delete a specific user by ID
@@ -89,6 +94,4 @@ class AdminController extends Controller
         $pet->forceDelete();
         return response()->json(['message' => 'Pet info force deleted successfully'], 200);
     }
-
-
 }
