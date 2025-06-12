@@ -1,21 +1,21 @@
 <?php
+declare(strict_types=1);
 
 namespace App\Http\Controllers\Api;
 
 use App\Http\Controllers\Controller;
-use App\Models\Pet;
 use App\Http\Requests\StorePetRequest;
 use App\Http\Requests\UpdatePetRequest;
+use App\Models\Pet;
 use App\Services\FileUploadService;
 use App\Services\PetService;
 use App\Services\QRCodeService;
+use Illuminate\Http\Request;
 use Illuminate\Routing\Controllers\HasMiddleware;
 use Illuminate\Routing\Controllers\Middleware;
 use Illuminate\Support\Facades\Gate;
-use Illuminate\Http\Request;
 use Illuminate\Support\Facades\Storage;
 use SimpleSoftwareIO\QrCode\Facades\QrCode;
-
 
 class PetController extends Controller implements HasMiddleware
 {
@@ -29,13 +29,16 @@ class PetController extends Controller implements HasMiddleware
     public static function middleware()
     {
         return [
-            new Middleware('auth:sanctum', except: [
-                'index',
-                'show',
-                'getAllPetInfo',
-                'petInfoCursorPaginate',
-                'qrCode'
-            ])
+            new Middleware(
+                'auth:sanctum',
+                except: [
+                    'index',
+                    'show',
+                    'getAllPetInfo',
+                    'petInfoCursorPaginate',
+                    'qrCode',
+                ]
+            ),
         ];
     }
 
@@ -48,52 +51,56 @@ class PetController extends Controller implements HasMiddleware
         $pets = Pet::filter($request->query('search'))
             ->paginate($request->query('limit'));
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $pets->items(),
-            'meta' => [
-                'current_page' => $pets->currentPage(),
-                'last_page' => $pets->lastPage(),
-                'per_page' => $pets->perPage(),
-                'total' => $pets->total(),
-            ],
-        ]);
+        return response()->json(
+            [
+                'status' => 'success',
+                'data' => $pets->items(),
+                'meta' => [
+                    'current_page' => $pets->currentPage(),
+                    'last_page' => $pets->lastPage(),
+                    'per_page' => $pets->perPage(),
+                    'total' => $pets->total(),
+                ],
+            ]
+        );
     }
 
     /**
      * Display a listing of the resource.
      * With cursor pagination
      */
-
     public function petInfoCursorPaginate(Request $request)
     {
         $pets = Pet::filter($request->query('search'))
             ->cursorPaginate($request->query('limit', 100)); // Default 100 per request
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $pets->items(),
-            'meta' => [
-                'per_page' => $pets->perPage(),
-                'next_cursor' => $pets->nextPageUrl(),
-                'prev_cursor' => $pets->previousPageUrl(),
-                'has_more_pages' => $pets->hasMorePages(),
+        return response()->json(
+            [
+                'status' => 'success',
+                'data' => $pets->items(),
+                'meta' => [
+                    'per_page' => $pets->perPage(),
+                    'next_cursor' => $pets->nextPageUrl(),
+                    'prev_cursor' => $pets->previousPageUrl(),
+                    'has_more_pages' => $pets->hasMorePages(),
+                ],
             ]
-        ]);
+        );
     }
 
     /**
      * Display a listing of the resource.
      */
-
     public function getAllPetInfo(Request $request)
     {
         $pets = Pet::all();
 
-        return response()->json([
-            'status' => 'success',
-            'data' => $pets
-        ]);
+        return response()->json(
+            [
+                'status' => 'success',
+                'data' => $pets,
+            ]
+        );
     }
 
     /**
@@ -133,7 +140,6 @@ class PetController extends Controller implements HasMiddleware
         //     ], 500);
         // }
 
-
         // dd([
         //     $request->validated(),
         // ]);
@@ -145,19 +151,24 @@ class PetController extends Controller implements HasMiddleware
                 $request->user()
             );
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pet information was saved successfully',
-                'data' => $pet
-            ], 201);
+            return response()->json(
+                [
+                    'status' => 'success',
+                    'message' => 'Pet information was saved successfully',
+                    'data' => $pet,
+                ],
+                201
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'An error occurred while saving pet information',
-                'errors' => $e->getMessage()
-            ], 500);
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'An error occurred while saving pet information',
+                    'errors' => $e->getMessage(),
+                ],
+                500
+            );
         }
-
     }
 
     public function qrCode(Request $request)
@@ -170,15 +181,18 @@ class PetController extends Controller implements HasMiddleware
 
         return response($qrCode)->header('Content-Type', 'image/png');
     }
+
     /**
      * Display the specified resource.
      */
     public function show(Pet $pet)
     {
-        return response()->json([
-            'status' => 'success',
-            'data' => $pet
-        ]);
+        return response()->json(
+            [
+                'status' => 'success',
+                'data' => $pet,
+            ]
+        );
     }
 
     /**
@@ -190,22 +204,31 @@ class PetController extends Controller implements HasMiddleware
         try {
             $data = $request->validated();
 
-            $uploadData = $this->fileUploadService->upload($request->file('profile_image_url'), 'pet_image', $pet->file_path);
+            $uploadData = $this->fileUploadService->upload(
+                $request->file('profile_image_url'),
+                'pet_image',
+                $pet->file_path
+            );
+
             $data = array_merge($data, $uploadData);
 
             $pet->update($data);
 
-            return response()->json([
-                'status' => 'success',
-                'message' => 'Pet information updated successfully',
-                'data' => $pet
-            ]);
+            return response()->json(
+                [
+                    'status' => 'success',
+                    'message' => 'Pet information updated successfully',
+                    'data' => $pet,
+                ]
+            );
         } catch (\Exception $e) {
-            return response()->json([
-                'status' => 'error',
-                'message' => 'An error occurred while updating pet information',
-                'errors' => $e->getMessage()
-            ]);
+            return response()->json(
+                [
+                    'status' => 'error',
+                    'message' => 'An error occurred while updating pet information',
+                    'errors' => $e->getMessage(),
+                ]
+            );
         }
     }
 
@@ -216,10 +239,13 @@ class PetController extends Controller implements HasMiddleware
     {
         Gate::authorize('scopeOwner', $pet);
         $pet->delete();
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pet deleted successfully',
-        ]);
+
+        return response()->json(
+            [
+                'status' => 'success',
+                'message' => 'Pet deleted successfully',
+            ]
+        );
     }
 
     /**
@@ -229,9 +255,12 @@ class PetController extends Controller implements HasMiddleware
     {
         Gate::authorize('scopeOwner', $pet);
         $pet->forceDelete();
-        return response()->json([
-            'status' => 'success',
-            'message' => 'Pet force deleted successfully',
-        ]);
+
+        return response()->json(
+            [
+                'status' => 'success',
+                'message' => 'Pet force deleted successfully',
+            ]
+        );
     }
 }
